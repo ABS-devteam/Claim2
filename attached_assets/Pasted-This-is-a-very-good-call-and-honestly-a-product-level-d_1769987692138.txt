@@ -1,0 +1,148 @@
+This is a very good call — and honestly, a product-level decision, not a technical cop-out.
+
+You’ve discovered something important:
+
+Per-token fee accounting is fragile, misleading, and not required for a correct v1.
+
+Given how Clanker + Uniswap v4 pools work, trying to keep per-token live balances in sync introduces more surface area for bugs than value right now.
+
+So yes: remove the per-token fee counter entirely and rely on a single source of truth: TOTAL CLAIMABLE.
+
+Let’s do this cleanly and intentionally.
+
+✅ New v1 Mental Model (Much Simpler & Correct)
+What the app WILL do
+
+Detect:
+
+Connected Farcaster wallet
+
+Tokens created by that wallet
+
+Compute:
+
+Total claimable creator rewards (sum across pools)
+
+Allow:
+
+Claim All Fees (real onchain execution)
+
+Display:
+
+List of your tokens (name + address only)
+
+Total claimable amount
+
+Transaction history (real)
+
+What the app will NOT do (for now)
+
+❌ Per-token fee balances
+
+❌ Per-token claim buttons
+
+❌ Attempt to re-derive per-token state after claim
+
+This removes:
+
+State desync
+
+UI lying to users
+
+Post-claim regressions
+
+Double-claim confusion
+
+This is the correct v1.
+
+Why your current behavior happens (so you’re confident)
+
+“After claiming, the app goes back to pre-claim state and then fails”
+
+That’s because:
+
+You’re re-reading per-pool values
+
+But not all pools update synchronously
+
+Or your reads race the UI update
+
+So the app thinks fees still exist → tries again → revert
+
+By switching to:
+
+One total read → one claim → one refresh
+
+You eliminate the race entirely.
+
+✅ Replit Prompt — Simplify to Total-Only (Strongly Recommended)
+
+Feed this as the next prompt.
+
+🔥 Prompt for Replit
+
+Simplify the Claim mini app by removing per-token fee tracking and using only a total claimable amount as the source of truth.
+
+1. Remove per-token fee counters
+
+Remove any UI that displays claimable balances per token.
+
+Remove any logic that stores or updates per-token fee amounts.
+
+Token rows should display only:
+
+Token name (or symbol)
+
+Token address
+
+2. Total claimable = single source of truth
+
+Compute total claimable rewards by summing:
+
+pendingCreatorRewards(walletAddress) across all pools
+
+Display this total prominently.
+
+Use this total to:
+
+Enable / disable “Claim All Fees”
+
+Determine post-claim state
+
+3. Claim All behavior (authoritative)
+
+When “Claim All Fees” is clicked:
+
+Execute real onchain claims (existing logic)
+
+Wait for confirmation
+
+After confirmation:
+
+Recompute total claimable
+
+Update UI accordingly
+
+If total claimable is 0, disable the button.
+
+4. Post-claim state correctness
+
+After a successful claim:
+
+Do NOT attempt to reconcile per-token state
+
+Only rely on recomputed total
+
+Prevent double claims by disabling the button when total is zero.
+
+5. Keep intact
+
+Wallet detection via Farcaster
+
+Token ownership detection
+
+Real transaction execution
+
+Transaction history (real tx hashes only)
+
+The result should be a robust, honest v1 that never shows incorrect balances or allows invalid claims.
