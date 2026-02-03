@@ -6,7 +6,7 @@
     "homeUrl": "https://claim.relaylabs.dev",
     "imageUrl": "https://claim.relaylabs.dev/screenshot.png",
     "buttonTitle": "Claim Fees",
-    "splashImageUrl": "https://claim.relaylabs.dev/favicon.png",
+    "splashImageUrl": "https://claim.relaylabs.dev/icon.png",
     "splashBackgroundColor": "#8a3ef4",
     "webhookUrl": "https://claim.relaylabs.dev",
     "subtitle": "Claim",
